@@ -1,0 +1,23 @@
+#patch for error response
+
+diff -urN python-sitemap-master/crawler.py python-sitemap-master/crawler.py
+--- python-sitemap-master/crawler.py  2013-04-03 09:25:00.000000000 +0300
++++ python-sitemap-master/crawler.py	2013-06-08 11:09:44.910676587 +0300
+@@ -84,8 +84,8 @@
+ 		url = urlparse(crawling)
+ 		self.crawled.add(crawling)
+ 		
++		request = Request(crawling, headers={"User-Agent":config.crawler_user_agent})
+ 		try:
+-			request = Request(crawling, headers={"User-Agent":config.crawler_user_agent})
+ 			response = urlopen(request)
+ 		except Exception as e:
+ 			if hasattr(e,'code'):
+@@ -94,7 +94,6 @@
+ 				else:
+ 					self.response_code[e.code]=1
+ 			logging.debug ("{1} ==> {0}".format(e, crawling))
+-			response.close()
+ 			return self.__continue_crawling()
+ 
+ 		# Read the response
