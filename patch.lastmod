@@ -1,0 +1,29 @@
+diff -urN python-sitemap-master/crawler.py python-sitemap-master/crawler.py
+--- python-sitemap-master/crawler.py  2013-04-03 09:25:00.000000000 +0300
++++ python-sitemap-master/crawler.py	2013-06-08 11:27:24.706698113 +0300
+@@ -5,6 +5,7 @@
+ from urllib.request import urlopen, Request
+ from urllib.robotparser import RobotFileParser
+ from urllib.parse import urlparse
++from datetime import datetime
+ 
+ import os
+ 
+@@ -105,12 +106,17 @@
+ 			else:
+ 				self.response_code[response.getcode()]=1
+ 			response.close()
++			if 'last-modified' in response.headers:
++				date = response.headers['Last-Modified']
++			else:
++				date = response.headers['Date']
++			date = datetime.strptime(date, '%a, %d %b %Y %H:%M:%S %Z')
+ 		except Exception as e:
+ 			logging.debug ("{1} ===> {0}".format(e, crawling))
+ 			return self.__continue_crawling()
+ 
+ 
+-		print ("<url><loc>"+url.geturl()+"</loc></url>", file=self.output_file)
++		print ("<url><loc>"+url.geturl()+"</loc><lastmod>"+date.strftime('%Y-%m-%dT%H:%M:%S')+"</lastmod></url>", file=self.output_file)
+ 		if self.output_file:
+ 			self.output_file.flush()
