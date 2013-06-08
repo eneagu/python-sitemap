@@ -5,6 +5,7 @@ import re
 from urllib.request import urlopen, Request
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlparse
+from datetime import datetime
 
 import os
 
@@ -83,9 +84,9 @@ class Crawler():
 
 		url = urlparse(crawling)
 		self.crawled.add(crawling)
+		request = Request(crawling, headers={"User-Agent":config.crawler_user_agent})
 		
 		try:
-			request = Request(crawling, headers={"User-Agent":config.crawler_user_agent})
 			response = urlopen(request)
 		except Exception as e:
 			if hasattr(e,'code'):
@@ -94,7 +95,6 @@ class Crawler():
 				else:
 					self.response_code[e.code]=1
 			logging.debug ("{1} ==> {0}".format(e, crawling))
-			response.close()
 			return self.__continue_crawling()
 
 		# Read the response
@@ -105,12 +105,17 @@ class Crawler():
 			else:
 				self.response_code[response.getcode()]=1
 			response.close()
+			if 'last-modified' in response.headers:
+				date = response.headers['Last-Modified']
+			else:
+				date = response.headers['Date']
+			date = datetime.strptime(date, '%a, %d %b %Y %H:%M:%S %Z')
 		except Exception as e:
 			logging.debug ("{1} ===> {0}".format(e, crawling))
 			return self.__continue_crawling()
 
 
-		print ("<url><loc>"+url.geturl()+"</loc></url>", file=self.output_file)
+		print ("<url><loc>"+url.geturl()+"</loc><lastmod>"+date.strftime('%Y-%m-%dT%H:%M:%S')+"</lastmod></url>", file=self.output_file)
 		if self.output_file:
 			self.output_file.flush()
 
